@@ -184,7 +184,7 @@ export function useDynamicWallet() {
 
 // Hook for checking if user can wager (needs linked identity)
 export function useCanWager() {
-  const { isLinked } = useDynamicWallet();
+  // Note: isLinked could be used for enhanced verification in future
   const { profile, isConnected } = useLineraStore();
   
   // Can wager if connected to Linera and has coins
