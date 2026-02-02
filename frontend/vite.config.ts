@@ -14,14 +14,16 @@ export default defineConfig({
     port: 5173,
     // Required for WASM (Cross-Origin Isolation)
     headers: {
-      'Cross-Origin-Embedder-Policy': 'credentialless',
       'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'credentialless',
+      'Cross-Origin-Resource-Policy': 'cross-origin',
     },
   },
   preview: {
     headers: {
-      'Cross-Origin-Embedder-Policy': 'credentialless',
       'Cross-Origin-Opener-Policy': 'same-origin',
+      'Cross-Origin-Embedder-Policy': 'credentialless',
+      'Cross-Origin-Resource-Policy': 'cross-origin',
     },
   },
   optimizeDeps: {
