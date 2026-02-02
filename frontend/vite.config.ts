@@ -30,8 +30,16 @@ export default defineConfig({
     // Don't pre-bundle WASM modules
     exclude: ['@linera/client'],
   },
+  // Enable top-level await for WASM
+  esbuild: {
+    supported: {
+      'top-level-await': true,
+    },
+  },
   build: {
     target: 'esnext',
+    // Ensure WASM files are handled correctly
+    assetsInlineLimit: 0, // Don't inline any assets (important for WASM)
     rollupOptions: {
       output: {
         manualChunks: {
