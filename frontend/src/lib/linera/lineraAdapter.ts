@@ -6,6 +6,33 @@
 import { ensureWasmInitialized } from './wasmInit';
 import { AutoSigner } from './autoSigner';
 
+/**
+ * Helper to add timeout to async operations
+ * This is critical for Linera testnet where validators can be slow/unreachable
+ */
+async function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  operationName: string
+): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout>;
+  
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(`${operationName} timed out after ${timeoutMs}ms - the Linera testnet validators may be slow. Please try again.`));
+    }, timeoutMs);
+  });
+  
+  try {
+    const result = await Promise.race([promise, timeoutPromise]);
+    clearTimeout(timeoutId!);
+    return result;
+  } catch (error) {
+    clearTimeout(timeoutId!);
+    throw error;
+  }
+}
+
 // Use 'any' for dynamic module types to avoid TypeScript issues with WASM
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type LineraClientModule = any;
@@ -199,7 +226,17 @@ class LineraAdapterClass {
       
       // Step 5: Claim a microchain using auto-signer address as owner
       console.log('[LineraAdapter] Claiming microchain...');
-      const chainId = await faucet.claimChain(wallet, autoSignerAddress);
+      let chainId: string;
+      try {
+        chainId = await withTimeout(
+          faucet.claimChain(wallet, autoSignerAddress),
+          30000,
+          'Chain claiming'
+        ) as string;
+      } catch (claimError) {
+        console.error('[LineraAdapter] Chain claiming error:', claimError);
+        throw new Error('Failed to claim chain from faucet. The Linera testnet may be experiencing issues. Please try again.');
+      }
       console.log('[LineraAdapter] Claimed chain:', chainId);
       
       // Step 6: Register auto-signer in wallet (CRITICAL - this was missing!)
@@ -212,11 +249,24 @@ class LineraAdapterClass {
       }
       
       // Step 7: Create Linera client with auto-signer
-      console.log('[LineraAdapter] Creating client...');
-      let client = new Client(wallet, rawSigner);
-      // Client constructor may return a promise in some SDK versions
-      if (client instanceof Promise) {
-        client = await client;
+      console.log('[LineraAdapter] Creating client (this may take up to 45s on testnet)...');
+      
+      // Wrap client creation with timeout - testnet validators can be slow
+      const createClientPromise = (async () => {
+        let newClient = new Client(wallet, rawSigner);
+        // Client constructor may return a promise in some SDK versions
+        if (newClient instanceof Promise) {
+          newClient = await newClient;
+        }
+        return newClient;
+      })();
+      
+      let client;
+      try {
+        client = await withTimeout(createClientPromise, 45000, 'Client creation');
+      } catch (timeoutError) {
+        console.error('[LineraAdapter] Client creation timeout:', timeoutError);
+        throw new Error('Connection to Linera testnet timed out. The validators may be experiencing high load. Please refresh and try again.');
       }
       console.log('[LineraAdapter] Client created');
       
@@ -255,7 +305,7 @@ class LineraAdapterClass {
       console.log('[LineraAdapter] Chain ID:', chainId);
       console.log('[LineraAdapter] Auto-signer address:', autoSignerAddress);
       
-      return this.connection;
+      return this.connection!;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       console.error('[LineraAdapter] Connection failed:', message);
