@@ -1,0 +1,97 @@
+# =========================
+# Environment & Secrets
+# =========================
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+*.env
+.secrets
+*.pem
+*.key
+
+# =========================
+# Rust / Cargo
+# =========================
+/target/
+target/
+**/*.rs.bk
+Cargo.lock
+
+# =========================
+# Node.js / Frontend
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.npm
+.yarn
+.pnp.*
+
+# Build outputs
+frontend/dist/
+frontend/build/
+dist/
+build/
+*.tsbuildinfo
+
+# =========================
+# IDE & Editors
+# =========================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# =========================
+# OS Generated
+# =========================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.log
+*.tmp
+*.temp
+
+# =========================
+# Linera Specific
+# =========================
+.linera/
+linera-wallet/
+*.wallet
+wallet.json
+*.linera
+
+# =========================
+# Testing
+# =========================
+coverage/
+.nyc_output/
+*.lcov
+
+# =========================
+# Vercel
+# =========================
+.vercel
+
+# =========================
+# Misc
+# =========================
+*.bak
+*.backup
+*.orig
+.cache/
+.parcel-cache/
