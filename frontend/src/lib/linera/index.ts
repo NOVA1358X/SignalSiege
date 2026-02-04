@@ -9,7 +9,8 @@ export {
   logout,
   query, 
   mutate, 
-  queryWithSync 
+  queryWithSync,
+  syncInboxFast
 } from './lineraAdapter';
 
 export type { ConnectionState, LineraConnection } from './lineraAdapter';

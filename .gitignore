@@ -96,3 +96,5 @@ coverage/
 .cache/
 .parcel-cache/
 guide.md
+ABOUT_PLAIN.txt
+.gitignore

@@ -4,6 +4,7 @@
 import { create } from 'zustand';
 import {
   getRoom,
+  getRoomFast,
   getPuzzle,
   getTraining,
   createRoom,
@@ -17,6 +18,7 @@ import {
   playTrainingTurn,
   forfeit,
   syncInbox,
+  syncInboxFast,
   claimDaily,
 } from '../lib/gameApi';
 import type {
@@ -104,7 +106,11 @@ export const useGameStore = create<GameState>((set, get) => ({
   // ========================================================================
   
   fetchRoom: async () => {
-    set({ isLoadingRoom: true, roomError: null });
+    const currentRoom = get().room;
+    // Only show loading if we don't have a room yet
+    if (!currentRoom) {
+      set({ isLoadingRoom: true, roomError: null });
+    }
     try {
       // Sync inbox first to receive cross-chain messages (e.g., opponent joining)
       await syncInbox();
@@ -122,16 +128,20 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
   
-  // Silent refresh for polling - doesn't show loading state
+  // Silent refresh for polling - doesn't show loading state and uses fast query
   refreshRoomSilent: async () => {
     try {
-      await syncInbox();
-      const room = await getRoom();
+      // Quick background sync - fire and forget, don't await
+      syncInboxFast().catch(() => {});
+      
+      // Use fast query that doesn't sync again
+      const room = await getRoomFast();
       const prevRoom = get().room;
       set({ room });
       
       // Only trigger animation if lastSignal changed
-      if (room?.lastSignal?.path && room.lastSignal.path !== prevRoom?.lastSignal?.path) {
+      if (room?.lastSignal?.path && 
+          JSON.stringify(room.lastSignal.path) !== JSON.stringify(prevRoom?.lastSignal?.path)) {
         get().triggerSignalAnimation(room.lastSignal.path);
       }
     } catch (error) {
@@ -156,10 +166,11 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({ isLoadingRoom: true, roomError: null });
     try {
       await joinRoom(hostChainId);
-      // Wait a bit for cross-chain message
-      await new Promise(r => setTimeout(r, 2000));
+      // Quick sync - don't wait too long
       await get().syncMessages();
-      await get().fetchRoom();
+      // Use silent fetch after join - game is already in progress
+      await get().refreshRoomSilent();
+      set({ isLoadingRoom: false });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       set({ isLoadingRoom: false, roomError: message });

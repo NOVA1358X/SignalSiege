@@ -7,6 +7,7 @@ import {
   queryWithSync, 
   getChainId, 
   getAutoSignerAddress,
+  syncInboxFast,
 } from './linera';
 import type { 
   GameRoom, 
@@ -260,6 +261,16 @@ export async function getRoom(): Promise<GameRoom | null> {
   const result = await queryWithSync<{ room: GameRoom | null }>(QUERIES.GET_ROOM);
   return result.room;
 }
+
+// Fast room query - no sync, just query current state
+// Used for polling when we've already done a background sync
+export async function getRoomFast(): Promise<GameRoom | null> {
+  const result = await query<{ room: GameRoom | null }>(QUERIES.GET_ROOM);
+  return result.room;
+}
+
+// Export fast sync for background operations
+export { syncInboxFast };
 
 export async function getPuzzle(): Promise<PuzzleState | null> {
   const result = await query<{ puzzle: PuzzleState | null }>(QUERIES.GET_PUZZLE);

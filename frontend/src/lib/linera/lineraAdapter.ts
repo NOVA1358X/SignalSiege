@@ -562,6 +562,26 @@ class LineraAdapterClass {
   }
 
   /**
+   * Fast sync - just calls syncInbox without waiting for block processing
+   * Used for quick polling
+   */
+  async syncInboxFast(): Promise<void> {
+    if (!this.appConnection) {
+      return;
+    }
+    
+    try {
+      const payload = JSON.stringify({
+        query: 'mutation SyncInbox { syncInbox }',
+        variables: {},
+      });
+      await this.appConnection.application.mutate(payload);
+    } catch (error) {
+      // Silent fail for background sync
+    }
+  }
+
+  /**
    * Get connection (for advanced use)
    */
   getConnection(): LineraConnection | null {
@@ -607,4 +627,8 @@ export async function mutate<T>(m: string, v?: Record<string, unknown>): Promise
 
 export async function queryWithSync<T>(q: string, v?: Record<string, unknown>): Promise<T> {
   return lineraAdapter.queryWithSync<T>(q, v);
+}
+
+export async function syncInboxFast(): Promise<void> {
+  return lineraAdapter.syncInboxFast();
 }

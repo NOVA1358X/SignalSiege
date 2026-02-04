@@ -31,13 +31,19 @@ const MatchPage: React.FC = () => {
   const [myPlayerId, setMyPlayerId] = useState<'player1' | 'player2' | null>(null);
   const [showForfeitConfirm, setShowForfeitConfirm] = useState(false);
   const [pollInterval, setPollInterval] = useState<NodeJS.Timeout | null>(null);
+  const pollCountRef = React.useRef(0);
   
-  // Fetch room and determine player ID
+  // Fetch room and determine player ID - use silent refresh if we have data
   useEffect(() => {
     if (isConnected) {
-      fetchRoom();
+      // If we already have room data, use silent refresh to avoid loading spinner
+      if (room) {
+        refreshRoomSilent();
+      } else {
+        fetchRoom();
+      }
     }
-  }, [isConnected, fetchRoom]);
+  }, [isConnected]);
   
   // Determine if it's my turn
   useEffect(() => {
@@ -69,26 +75,34 @@ const MatchPage: React.FC = () => {
     checkTurn();
   }, [room, chainId]);
   
-  // Poll for updates when waiting for opponent
+  // Poll for updates when waiting for opponent - fast polling with periodic full sync
   useEffect(() => {
     const roomStatus = room?.status;
     const isPlaying = roomStatus === 'Playing' || roomStatus === 'InProgress';
     if (isPlaying && !myTurn) {
       // Start polling with silent refresh (no loading state)
       const interval = setInterval(() => {
-        refreshRoomSilent();
-      }, 3000);
+        pollCountRef.current += 1;
+        
+        // Every 5th poll, do a full sync to ensure we get updates
+        if (pollCountRef.current % 5 === 0) {
+          fetchRoom();
+        } else {
+          refreshRoomSilent();
+        }
+      }, 2000); // Poll every 2 seconds
       
       setPollInterval(interval);
       return () => clearInterval(interval);
     } else {
-      // Clear polling
+      // Clear polling and reset counter
       if (pollInterval) {
         clearInterval(pollInterval);
         setPollInterval(null);
       }
+      pollCountRef.current = 0;
     }
-  }, [room?.status, myTurn, refreshRoomSilent]);
+  }, [room?.status, myTurn, refreshRoomSilent, fetchRoom]);
   
   // Cleanup on unmount
   useEffect(() => {
