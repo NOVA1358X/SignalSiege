@@ -133,6 +133,9 @@ export const TileInventory: React.FC<TileInventoryProps> = ({ inventory, disable
               </button>
             ))}
           </div>
+          <p className="text-xs text-neon-cyan mt-1 opacity-70">
+            💡 Match cyan dots to connect tiles!
+          </p>
         </div>
       )}
       

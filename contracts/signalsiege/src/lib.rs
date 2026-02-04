@@ -35,7 +35,7 @@ pub const BOARD_SIZE: usize = 7;
 pub const BOARD_CELLS: usize = BOARD_SIZE * BOARD_SIZE; // 49 cells
 
 /// Default signal range from Core
-pub const BASE_SIGNAL_RANGE: u8 = 3;
+pub const BASE_SIGNAL_RANGE: u8 = 15;
 
 /// Maximum turns per game
 pub const MAX_TURNS: u16 = 20;
@@ -636,13 +636,13 @@ impl TileInventory {
     /// Standard starting inventory
     pub fn standard() -> Self {
         Self {
-            wire_straight: 4,
-            wire_corner: 3,
-            wire_t_junction: 2,
-            wire_cross: 1,
+            wire_straight: 8,
+            wire_corner: 6,
+            wire_t_junction: 4,
+            wire_cross: 2,
             blocker: 2,
-            jammer: 1,
-            amplifier: 1,
+            jammer: 2,
+            amplifier: 2,
         }
     }
 

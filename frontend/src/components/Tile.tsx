@@ -20,7 +20,7 @@ const rotationDegrees: Record<Rotation, number> = {
   R270: 270,
 };
 
-// Straight path tile - signal flows through
+// Straight path tile - signal flows through (connects North-South at R0)
 const StraightPath: React.FC<{ active?: boolean }> = ({ active }) => (
   <svg viewBox="0 0 64 64" className="w-full h-full">
     <rect x="0" y="0" width="64" height="64" fill="#1a1a2e" />
@@ -33,13 +33,16 @@ const StraightPath: React.FC<{ active?: boolean }> = ({ active }) => (
       fill={active ? '#4ade80' : '#374151'}
       className={active ? 'animate-pulse' : ''}
     />
+    {/* Connection dots - North and South */}
+    <circle cx="32" cy="6" r="4" fill={active ? '#4ade80' : '#22d3ee'} />
+    <circle cx="32" cy="58" r="4" fill={active ? '#4ade80' : '#22d3ee'} />
     {active && (
       <rect x="28" y="4" width="8" height="56" rx="1" fill="#86efac" opacity="0.6" />
     )}
   </svg>
 );
 
-// Curved path tile - 90 degree turn
+// Curved path tile - 90 degree turn (connects North-East at R0)
 const CurvedPath: React.FC<{ active?: boolean }> = ({ active }) => (
   <svg viewBox="0 0 64 64" className="w-full h-full">
     <rect x="0" y="0" width="64" height="64" fill="#1a1a2e" />
@@ -48,6 +51,9 @@ const CurvedPath: React.FC<{ active?: boolean }> = ({ active }) => (
       fill={active ? '#4ade80' : '#374151'}
       className={active ? 'animate-pulse' : ''}
     />
+    {/* Connection dots - North and East */}
+    <circle cx="32" cy="6" r="4" fill={active ? '#4ade80' : '#22d3ee'} />
+    <circle cx="58" cy="32" r="4" fill={active ? '#4ade80' : '#22d3ee'} />
     {active && (
       <path
         d="M 30 4 L 30 32 Q 30 36 36 36 L 60 36 L 60 28 L 36 28 Q 28 28 28 32 L 28 4 Z"
@@ -58,40 +64,44 @@ const CurvedPath: React.FC<{ active?: boolean }> = ({ active }) => (
   </svg>
 );
 
-// T-Junction tile - 3-way split
+// T-Junction tile - 3-way split (connects North-East-South at R0)
 const TJunction: React.FC<{ active?: boolean }> = ({ active }) => (
   <svg viewBox="0 0 64 64" className="w-full h-full">
     <rect x="0" y="0" width="64" height="64" fill="#1a1a2e" />
-    {/* Vertical bar */}
+    {/* Vertical bar going down */}
     <rect 
       x="26" 
-      y="26" 
+      y="4" 
       width="12" 
-      height="34" 
+      height="56" 
       rx="2"
       fill={active ? '#4ade80' : '#374151'}
       className={active ? 'animate-pulse' : ''}
     />
-    {/* Horizontal bar */}
+    {/* Horizontal bar going right */}
     <rect 
-      x="4" 
+      x="32" 
       y="26" 
-      width="56" 
+      width="28" 
       height="12" 
       rx="2"
       fill={active ? '#4ade80' : '#374151'}
       className={active ? 'animate-pulse' : ''}
     />
+    {/* Connection dots - North, East, South */}
+    <circle cx="32" cy="6" r="4" fill={active ? '#4ade80' : '#22d3ee'} />
+    <circle cx="58" cy="32" r="4" fill={active ? '#4ade80' : '#22d3ee'} />
+    <circle cx="32" cy="58" r="4" fill={active ? '#4ade80' : '#22d3ee'} />
     {active && (
       <>
-        <rect x="28" y="28" width="8" height="32" rx="1" fill="#86efac" opacity="0.6" />
-        <rect x="4" y="28" width="56" height="8" rx="1" fill="#86efac" opacity="0.6" />
+        <rect x="28" y="4" width="8" height="56" rx="1" fill="#86efac" opacity="0.6" />
+        <rect x="32" y="28" width="28" height="8" rx="1" fill="#86efac" opacity="0.6" />
       </>
     )}
   </svg>
 );
 
-// Crossroad tile - 4-way intersection
+// Crossroad tile - 4-way intersection (connects all 4 directions)
 const Crossroad: React.FC<{ active?: boolean }> = ({ active }) => (
   <svg viewBox="0 0 64 64" className="w-full h-full">
     <rect x="0" y="0" width="64" height="64" fill="#1a1a2e" />
@@ -115,6 +125,11 @@ const Crossroad: React.FC<{ active?: boolean }> = ({ active }) => (
       fill={active ? '#4ade80' : '#374151'}
       className={active ? 'animate-pulse' : ''}
     />
+    {/* Connection dots - All 4 directions */}
+    <circle cx="32" cy="6" r="4" fill={active ? '#4ade80' : '#22d3ee'} />
+    <circle cx="58" cy="32" r="4" fill={active ? '#4ade80' : '#22d3ee'} />
+    <circle cx="32" cy="58" r="4" fill={active ? '#4ade80' : '#22d3ee'} />
+    <circle cx="6" cy="32" r="4" fill={active ? '#4ade80' : '#22d3ee'} />
     {active && (
       <>
         <rect x="28" y="4" width="8" height="56" rx="1" fill="#86efac" opacity="0.6" />
@@ -124,10 +139,15 @@ const Crossroad: React.FC<{ active?: boolean }> = ({ active }) => (
   </svg>
 );
 
-// Tower - signal source/destination
+// Tower/Core - signal source/destination (connects all 4 directions)
 const Tower: React.FC<{ active?: boolean; isPlayer?: boolean }> = ({ active, isPlayer }) => (
   <svg viewBox="0 0 64 64" className="w-full h-full">
     <rect x="0" y="0" width="64" height="64" fill="#1a1a2e" />
+    {/* Connection dots - All 4 directions */}
+    <circle cx="32" cy="6" r="4" fill={isPlayer ? '#22d3ee' : '#f472b6'} />
+    <circle cx="58" cy="32" r="4" fill={isPlayer ? '#22d3ee' : '#f472b6'} />
+    <circle cx="32" cy="58" r="4" fill={isPlayer ? '#22d3ee' : '#f472b6'} />
+    <circle cx="6" cy="32" r="4" fill={isPlayer ? '#22d3ee' : '#f472b6'} />
     {/* Tower base */}
     <rect 
       x="20" 
@@ -135,12 +155,12 @@ const Tower: React.FC<{ active?: boolean; isPlayer?: boolean }> = ({ active, isP
       width="24" 
       height="20" 
       rx="2"
-      fill={active ? '#3b82f6' : isPlayer ? '#6366f1' : '#78716c'}
+      fill={active ? '#3b82f6' : isPlayer ? '#6366f1' : '#db2777'}
     />
     {/* Tower body */}
     <polygon 
       points="32,8 44,36 20,36"
-      fill={active ? '#60a5fa' : isPlayer ? '#818cf8' : '#a8a29e'}
+      fill={active ? '#60a5fa' : isPlayer ? '#818cf8' : '#f472b6'}
     />
     {/* Signal rings when active */}
     {active && (
