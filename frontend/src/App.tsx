@@ -13,6 +13,7 @@ export default function App() {
         <Route index element={<LandingPage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="pve" element={<PvEPage />} />
+        <Route path="training" element={<PvEPage />} />
         <Route path="lobby" element={<LobbyPage />} />
         <Route path="match" element={<MatchPage />} />
         <Route path="match/:hostChainId" element={<MatchPage />} />

@@ -6,6 +6,25 @@ import { useNavigate } from 'react-router-dom';
 import { useLineraStore } from '../stores/lineraStore';
 import { useGameStore } from '../stores/gameStore';
 import { useDynamicWallet, useWalletDisplay } from '../hooks/useDynamic';
+import {
+  ArrowLeft,
+  Coins,
+  Trophy,
+  Gift,
+  Wallet,
+  Link2,
+  CheckCircle,
+  Shield,
+  Globe,
+  Cpu,
+  Loader2,
+  LogOut,
+  Sparkles,
+  Award,
+  Percent,
+  Skull,
+  Equal
+} from 'lucide-react';
 
 const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
@@ -18,14 +37,12 @@ const ProfilePage: React.FC = () => {
   const [claimError, setClaimError] = useState<string | null>(null);
   const [claimSuccess, setClaimSuccess] = useState(false);
   
-  // Refresh profile on mount
   useEffect(() => {
     if (isConnected) {
       refreshProfile();
     }
   }, [isConnected, refreshProfile]);
   
-  // Check if can claim today
   const canClaim = (): boolean => {
     const lastClaim = profile?.lastDailyClaim ?? profile?.lastClaimDay;
     if (!lastClaim) return true;
@@ -44,237 +61,294 @@ const ProfilePage: React.FC = () => {
       await refreshProfile();
       setClaimSuccess(true);
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      setClaimError(message);
+      setClaimError(error instanceof Error ? error.message : String(error));
     } finally {
       setIsClaiming(false);
     }
   };
   
-  // Stats display
   const wins = profile?.wins ?? profile?.totalWins ?? 0;
   const losses = profile?.losses ?? profile?.totalLosses ?? 0;
   const draws = profile?.draws ?? profile?.totalDraws ?? 0;
-  const stats = [
-    { label: 'Wins', value: wins, color: 'text-neon-green' },
-    { label: 'Losses', value: losses, color: 'text-neon-red' },
-    { label: 'Draws', value: draws, color: 'text-gray-400' },
-    { label: 'Win Rate', value: profile ? `${Math.round((wins / Math.max(wins + losses, 1)) * 100)}%` : '0%', color: 'text-neon-cyan' },
-  ];
+  const winRate = wins + losses > 0 ? Math.round((wins / (wins + losses)) * 100) : 0;
   
   if (!isConnected) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-400 mb-4">Please connect to view your profile</p>
-          <button 
+      <div className="min-h-screen flex items-center justify-center bg-dark-900">
+        <motion.div 
+          className="text-center p-8 bg-dark-800/60 backdrop-blur-sm border border-gray-700/50 rounded-2xl"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+        >
+          <Shield className="w-12 h-12 text-neon-cyan mx-auto mb-4" />
+          <p className="text-gray-400 mb-4">Connect to view your profile</p>
+          <motion.button 
             onClick={() => navigate('/')}
-            className="px-6 py-2 bg-neon-cyan text-dark-900 rounded-lg font-bold"
+            className="px-6 py-3 bg-gradient-to-r from-neon-cyan to-neon-purple text-white rounded-xl font-bold"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             Go Home
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
       </div>
     );
   }
   
   return (
-    <div className="min-h-screen p-4 md:p-8">
+    <div className="min-h-screen p-4 md:p-8 bg-dark-900">
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <button
+        <motion.div 
+          className="flex items-center justify-between"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <motion.button
             onClick={() => navigate('/lobby')}
-            className="text-gray-400 hover:text-white transition-colors"
+            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+            whileHover={{ x: -4 }}
           >
-            ← Back to Lobby
-          </button>
-          <h1 className="text-2xl font-bold text-white">Profile</h1>
-          <div className="w-20" /> {/* Spacer */}
-        </div>
+            <ArrowLeft className="w-5 h-5" />
+            Back to Lobby
+          </motion.button>
+          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+            <Trophy className="w-6 h-6 text-neon-yellow" />
+            Profile
+          </h1>
+          <div className="w-24" />
+        </motion.div>
         
-        {/* Wallet Status Card */}
+        {/* Coins & Daily Claim Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-dark-800 rounded-xl p-6 border border-neon-purple/30"
+          className="bg-gradient-to-br from-neon-yellow/10 to-neon-yellow/5 backdrop-blur-sm rounded-2xl p-6 border border-neon-yellow/30"
         >
-          <h2 className="text-lg font-bold text-white mb-4">Wallet</h2>
-          
-          <div className="space-y-3">
-            {/* Chain ID */}
-            <div className="flex justify-between items-center">
-              <span className="text-gray-400">Chain ID</span>
-              <span className="font-mono text-neon-cyan">{chainDisplay ?? '...'}</span>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <p className="text-gray-400 text-sm mb-1">Your Balance</p>
+              <div className="flex items-center gap-3">
+                <Coins className="w-8 h-8 text-neon-yellow" />
+                <span className="text-4xl font-black text-white">{profile?.coinBalance ?? profile?.coins ?? 0}</span>
+              </div>
             </div>
             
-            {/* Auto-Signer */}
-            <div className="flex justify-between items-center">
-              <span className="text-gray-400">Game Signer</span>
-              <span className="font-mono text-gray-300">{signerDisplay ?? '...'}</span>
-            </div>
-            
-            {/* EVM Address */}
-            <div className="flex justify-between items-center">
-              <span className="text-gray-400">EVM Wallet</span>
-              {isAuthenticated ? (
-                <span className={`font-mono ${isLinked ? 'text-neon-green' : 'text-neon-yellow'}`}>
-                  {evmDisplay} {isLinked ? '✓' : '(not linked)'}
-                </span>
+            <motion.button
+              onClick={handleClaim}
+              disabled={isClaiming || !canClaim() || claimSuccess}
+              className={`
+                px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all
+                ${canClaim() && !claimSuccess
+                  ? 'bg-gradient-to-r from-neon-yellow to-neon-green text-dark-900 hover:shadow-lg hover:shadow-neon-yellow/30'
+                  : 'bg-dark-700/50 text-gray-500 cursor-not-allowed'
+                }
+              `}
+              whileHover={canClaim() && !claimSuccess ? { scale: 1.05 } : {}}
+              whileTap={canClaim() && !claimSuccess ? { scale: 0.95 } : {}}
+            >
+              {isClaiming ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Claiming...
+                </>
+              ) : claimSuccess ? (
+                <>
+                  <CheckCircle className="w-5 h-5" />
+                  Claimed!
+                </>
+              ) : canClaim() ? (
+                <>
+                  <Gift className="w-5 h-5" />
+                  Claim Daily
+                </>
               ) : (
-                <button
-                  onClick={openLogin}
-                  className="text-neon-purple hover:underline text-sm"
-                >
-                  Connect Wallet
-                </button>
+                <>
+                  <Gift className="w-5 h-5" />
+                  Already Claimed
+                </>
               )}
-            </div>
+            </motion.button>
           </div>
           
-          {/* Link/Unlink button */}
-          {isAuthenticated && !isLinked && (
-            <button
-              onClick={linkIdentity}
-              disabled={isLinking}
-              className="mt-4 w-full py-2 bg-neon-yellow/20 border border-neon-yellow text-neon-yellow rounded-lg hover:bg-neon-yellow/30 transition-colors disabled:opacity-50"
+          {claimError && (
+            <motion.p 
+              className="text-neon-red text-sm flex items-center gap-2"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
             >
-              {isLinking ? 'Signing...' : '🔐 Link Wallet for Wagers'}
-            </button>
+              <Shield className="w-4 h-4" />
+              {claimError}
+            </motion.p>
           )}
           
-          {linkError && (
-            <p className="mt-2 text-sm text-neon-red">{linkError}</p>
-          )}
-          
-          {/* Logout */}
-          {isAuthenticated && (
-            <button
-              onClick={fullLogout}
-              className="mt-3 w-full py-2 text-gray-500 hover:text-gray-300 text-sm"
+          {claimSuccess && (
+            <motion.div 
+              className="flex items-center gap-2 text-neon-green"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
             >
-              Disconnect Wallet
-            </button>
+              <Sparkles className="w-5 h-5" />
+              <span>+100 coins added to your balance!</span>
+            </motion.div>
           )}
         </motion.div>
         
-        {/* Coin Balance & Daily Claim */}
+        {/* Stats Grid */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-dark-800 rounded-xl p-6 border border-neon-yellow/30"
+          className="grid grid-cols-2 md:grid-cols-4 gap-4"
         >
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-lg font-bold text-white">Coins</h2>
-              <p className="text-sm text-gray-500">Use coins to wager in matches</p>
-            </div>
-            <div className="text-right">
-              <div className="text-3xl font-bold text-neon-yellow">
-                🪙 {profile?.coinBalance ?? profile?.coins ?? 0}
-              </div>
-            </div>
-          </div>
-          
-          {/* Daily Claim */}
-          <div className="bg-dark-700 rounded-lg p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <h3 className="font-medium text-white">Daily Reward</h3>
-                <p className="text-sm text-gray-500">Claim 50 coins every day</p>
-              </div>
-              <span className="text-2xl">🎁</span>
-            </div>
-            
-            {canClaim() ? (
-              <button
-                onClick={handleClaim}
-                disabled={isClaiming}
-                className={`
-                  w-full py-3 rounded-lg font-bold
-                  bg-gradient-to-r from-neon-yellow to-neon-orange
-                  text-dark-900 hover:shadow-neon-yellow transition-shadow
-                  disabled:opacity-50
-                `}
-              >
-                {isClaiming ? 'Claiming...' : '🎉 Claim 50 Coins'}
-              </button>
-            ) : (
-              <div className="w-full py-3 rounded-lg bg-dark-600 text-center text-gray-400">
-                ✓ Already claimed today
-              </div>
-            )}
-            
-            {claimSuccess && (
-              <motion.p 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="mt-2 text-sm text-neon-green text-center"
-              >
-                +50 coins added!
-              </motion.p>
-            )}
-            
-            {claimError && (
-              <p className="mt-2 text-sm text-neon-red text-center">{claimError}</p>
-            )}
-          </div>
+          {[
+            { label: 'Wins', value: wins, icon: Trophy, color: 'neon-green', bg: 'from-neon-green/20 to-neon-green/5' },
+            { label: 'Losses', value: losses, icon: Skull, color: 'neon-red', bg: 'from-neon-red/20 to-neon-red/5' },
+            { label: 'Draws', value: draws, icon: Equal, color: 'gray-400', bg: 'from-gray-600/20 to-gray-600/5' },
+            { label: 'Win Rate', value: `${winRate}%`, icon: Percent, color: 'neon-cyan', bg: 'from-neon-cyan/20 to-neon-cyan/5' },
+          ].map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              className={`bg-gradient-to-br ${stat.bg} backdrop-blur-sm rounded-xl p-4 border border-gray-700/30`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 + i * 0.05 }}
+              whileHover={{ y: -2 }}
+            >
+              <stat.icon className={`w-6 h-6 text-${stat.color} mb-2`} />
+              <p className="text-2xl font-bold text-white">{stat.value}</p>
+              <p className="text-gray-400 text-sm">{stat.label}</p>
+            </motion.div>
+          ))}
         </motion.div>
         
-        {/* Stats */}
+        {/* Wallet Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-dark-800 rounded-xl p-6 border border-neon-cyan/30"
+          className="bg-dark-800/60 backdrop-blur-sm rounded-2xl p-6 border border-neon-purple/30"
         >
-          <h2 className="text-lg font-bold text-white mb-4">Statistics</h2>
+          <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <Wallet className="w-5 h-5 text-neon-purple" />
+            Wallet Connection
+          </h2>
           
-          <div className="grid grid-cols-4 gap-4">
-            {stats.map((stat, i) => (
-              <div key={i} className="text-center">
-                <div className={`text-2xl font-bold ${stat.color}`}>
-                  {stat.value}
-                </div>
-                <div className="text-sm text-gray-500">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-          
-          {/* Puzzle stats */}
-          <div className="mt-6 pt-4 border-t border-dark-600">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-400">Puzzles Solved</span>
-              <span className="text-neon-purple font-bold">{profile?.puzzlesSolved ?? profile?.puzzleWins ?? 0}</span>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center p-3 bg-dark-700/50 rounded-xl">
+              <span className="text-gray-400 flex items-center gap-2">
+                <Globe className="w-4 h-4" />
+                Chain ID
+              </span>
+              <span className="font-mono text-neon-cyan text-sm">{chainDisplay ?? '...'}</span>
+            </div>
+            
+            <div className="flex justify-between items-center p-3 bg-dark-700/50 rounded-xl">
+              <span className="text-gray-400 flex items-center gap-2">
+                <Cpu className="w-4 h-4" />
+                Game Signer
+              </span>
+              <span className="font-mono text-gray-300 text-sm">{signerDisplay ?? '...'}</span>
+            </div>
+            
+            <div className="flex justify-between items-center p-3 bg-dark-700/50 rounded-xl">
+              <span className="text-gray-400 flex items-center gap-2">
+                <Wallet className="w-4 h-4" />
+                EVM Wallet
+              </span>
+              {isAuthenticated ? (
+                <span className={`font-mono text-sm flex items-center gap-2 ${isLinked ? 'text-neon-green' : 'text-neon-yellow'}`}>
+                  {evmDisplay}
+                  {isLinked && <CheckCircle className="w-4 h-4" />}
+                </span>
+              ) : (
+                <motion.button
+                  onClick={openLogin}
+                  className="text-neon-purple hover:underline text-sm font-medium flex items-center gap-1"
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <Link2 className="w-4 h-4" />
+                  Connect
+                </motion.button>
+              )}
             </div>
           </div>
+          
+          {isAuthenticated && !isLinked && (
+            <motion.button
+              onClick={linkIdentity}
+              disabled={isLinking}
+              className="mt-4 w-full py-3 bg-neon-yellow/20 border border-neon-yellow text-neon-yellow rounded-xl hover:bg-neon-yellow/30 transition-colors disabled:opacity-50 font-medium flex items-center justify-center gap-2"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {isLinking ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Signing...
+                </>
+              ) : (
+                <>
+                  <Link2 className="w-5 h-5" />
+                  Link Wallet for Wagers
+                </>
+              )}
+            </motion.button>
+          )}
+          
+          {linkError && (
+            <p className="mt-2 text-sm text-neon-red flex items-center gap-1">
+              <Shield className="w-4 h-4" />
+              {linkError}
+            </p>
+          )}
+          
+          {isAuthenticated && (
+            <motion.button
+              onClick={fullLogout}
+              className="mt-4 w-full py-3 border border-gray-600 text-gray-400 rounded-xl hover:bg-dark-700 hover:text-neon-red transition-all font-medium flex items-center justify-center gap-2"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <LogOut className="w-5 h-5" />
+              Disconnect Wallet
+            </motion.button>
+          )}
         </motion.div>
         
-        {/* Quick Actions */}
+        {/* Achievement Card Placeholder */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="grid grid-cols-2 gap-4"
+          className="bg-dark-800/60 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/30"
         >
-          <button
-            onClick={() => navigate('/pve')}
-            className="p-4 bg-dark-800 border border-neon-purple/30 rounded-xl hover:border-neon-purple transition-colors text-left"
-          >
-            <span className="text-2xl mb-2 block">🧩</span>
-            <span className="font-medium text-white">Daily Puzzle</span>
-            <span className="text-sm text-gray-500 block">Train your skills</span>
-          </button>
+          <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <Award className="w-5 h-5 text-neon-pink" />
+            Achievements
+          </h2>
           
-          <button
-            onClick={() => navigate('/lobby')}
-            className="p-4 bg-dark-800 border border-neon-cyan/30 rounded-xl hover:border-neon-cyan transition-colors text-left"
-          >
-            <span className="text-2xl mb-2 block">⚔️</span>
-            <span className="font-medium text-white">PvP Match</span>
-            <span className="text-sm text-gray-500 block">Battle other players</span>
-          </button>
+          <div className="grid grid-cols-4 gap-3">
+            {[
+              { name: 'First Win', unlocked: wins > 0 },
+              { name: '10 Wins', unlocked: wins >= 10 },
+              { name: 'Daily Streak', unlocked: false },
+              { name: 'Wager Master', unlocked: false },
+            ].map((achievement, i) => (
+              <motion.div
+                key={i}
+                className={`p-3 rounded-xl text-center ${
+                  achievement.unlocked 
+                    ? 'bg-neon-pink/20 border border-neon-pink/30' 
+                    : 'bg-dark-700/30 border border-gray-700/30 opacity-50'
+                }`}
+                whileHover={{ scale: achievement.unlocked ? 1.05 : 1 }}
+              >
+                <Award className={`w-6 h-6 mx-auto mb-1 ${achievement.unlocked ? 'text-neon-pink' : 'text-gray-600'}`} />
+                <span className="text-xs text-gray-400">{achievement.name}</span>
+              </motion.div>
+            ))}
+          </div>
         </motion.div>
       </div>
     </div>

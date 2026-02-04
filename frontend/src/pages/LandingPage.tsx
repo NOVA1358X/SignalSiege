@@ -5,6 +5,22 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useLineraStore } from '../stores/lineraStore';
 import { useDynamicWallet } from '../hooks/useDynamic';
+import { 
+  Zap, 
+  Grid3X3, 
+  Coins, 
+  Puzzle, 
+  Wallet, 
+  Link2, 
+  CheckCircle, 
+  ArrowRight,
+  Play,
+  Shield,
+  Globe,
+  Cpu,
+  ChevronRight,
+  Unlink
+} from 'lucide-react';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -13,11 +29,8 @@ const LandingPage: React.FC = () => {
   
   const handlePlay = async () => {
     if (!isConnected) {
-      // First connect to Linera
       await connect();
     }
-    
-    // Navigate to lobby after connection
     navigate('/lobby');
   };
   
@@ -26,303 +39,325 @@ const LandingPage: React.FC = () => {
     fullLogout();
   };
   
-  // Helper to shorten addresses
   const shortAddress = (addr: string | null) => {
     if (!addr) return '...';
     return `${addr.slice(0, 8)}...${addr.slice(-6)}`;
   };
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1, delayChildren: 0.2 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
+  const pulseVariants = {
+    pulse: {
+      scale: [1, 1.05, 1],
+      opacity: [0.7, 1, 0.7],
+      transition: { duration: 2, repeat: Infinity }
+    }
+  };
   
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden">
-      {/* Background effects */}
-      <div className="absolute inset-0 bg-gradient-radial from-dark-800 via-dark-900 to-black" />
+    <div className="min-h-screen flex flex-col relative overflow-hidden bg-dark-900">
+      {/* Animated background */}
       <div className="absolute inset-0">
-        {/* Grid pattern */}
-        <div 
-          className="absolute inset-0 opacity-20"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px)
-            `,
-            backgroundSize: '50px 50px',
-          }}
+        <motion.div 
+          className="absolute top-1/4 left-1/4 w-96 h-96 bg-neon-cyan/20 rounded-full blur-3xl"
+          animate={{ x: [0, 50, 0], y: [0, 30, 0], scale: [1, 1.1, 1] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div 
+          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-neon-purple/20 rounded-full blur-3xl"
+          animate={{ x: [0, -50, 0], y: [0, -30, 0], scale: [1.1, 1, 1.1] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 1 }}
         />
         
-        {/* Animated signal lines */}
-        <svg className="absolute inset-0 w-full h-full opacity-30">
+        <div 
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage: `linear-gradient(rgba(0, 255, 255, 0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 255, 0.3) 1px, transparent 1px)`,
+            backgroundSize: '60px 60px',
+          }}
+        />
+
+        <svg className="absolute inset-0 w-full h-full opacity-20">
           <defs>
-            <linearGradient id="signalGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <linearGradient id="lineGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="#00ffff" stopOpacity="0" />
               <stop offset="50%" stopColor="#00ffff" stopOpacity="1" />
               <stop offset="100%" stopColor="#00ffff" stopOpacity="0" />
             </linearGradient>
+            <linearGradient id="lineGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#ff00ff" stopOpacity="0" />
+              <stop offset="50%" stopColor="#ff00ff" stopOpacity="1" />
+              <stop offset="100%" stopColor="#ff00ff" stopOpacity="0" />
+            </linearGradient>
           </defs>
           
-          {/* Animated horizontal lines */}
-          {[20, 40, 60, 80].map((y, i) => (
+          {[15, 35, 55, 75, 90].map((y, i) => (
             <motion.line
               key={i}
               x1="0%"
               y1={`${y}%`}
               x2="100%"
               y2={`${y}%`}
-              stroke="url(#signalGrad)"
-              strokeWidth="2"
+              stroke={i % 2 === 0 ? "url(#lineGrad1)" : "url(#lineGrad2)"}
+              strokeWidth="1"
               initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ 
-                pathLength: [0, 1], 
-                opacity: [0, 1, 0],
-              }}
-              transition={{ 
-                duration: 3, 
-                repeat: Infinity, 
-                delay: i * 0.8,
-                ease: "linear",
-              }}
+              animate={{ pathLength: [0, 1], opacity: [0, 0.6, 0] }}
+              transition={{ duration: 4, repeat: Infinity, delay: i * 0.6, ease: "linear" }}
             />
           ))}
         </svg>
       </div>
       
       {/* Main content */}
-      <main className="flex-1 flex flex-col items-center justify-center z-10 px-4">
-        {/* Logo/Title */}
+      <main className="flex-1 flex flex-col items-center justify-center z-10 px-4 py-12">
         <motion.div
-          initial={{ opacity: 0, y: -30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-8"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="text-center max-w-4xl"
         >
-          <h1 className="text-6xl md:text-8xl font-bold mb-4">
-            <span className="bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent">
-              Signal
-            </span>
-            <span className="text-white">Siege</span>
-          </h1>
-          
-          <motion.p 
-            className="text-xl md:text-2xl text-gray-400"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-          >
-            Strategic Signal Warfare on Linera
-          </motion.p>
-        </motion.div>
-        
-        {/* Feature highlights */}
-        <motion.div 
-          className="flex flex-wrap justify-center gap-4 mb-12 text-sm md:text-base"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-        >
-          {[
-            { icon: '⚡', text: 'On-Chain PvP' },
-            { icon: '🎯', text: '7×7 Grid Combat' },
-            { icon: '🪙', text: 'Wager & Win' },
-            { icon: '🧩', text: 'Daily Puzzles' },
-          ].map((feature, i) => (
-            <div 
-              key={i}
-              className="px-4 py-2 bg-dark-800/50 border border-neon-cyan/30 rounded-lg flex items-center gap-2"
+          {/* Logo/Title */}
+          <motion.div variants={itemVariants} className="mb-6">
+            <motion.div 
+              className="inline-flex items-center gap-3 px-4 py-2 bg-dark-800/60 backdrop-blur-sm border border-neon-cyan/30 rounded-full mb-6"
+              whileHover={{ scale: 1.02, borderColor: 'rgba(0, 255, 255, 0.6)' }}
             >
-              <span>{feature.icon}</span>
-              <span className="text-gray-300">{feature.text}</span>
-            </div>
-          ))}
-        </motion.div>
-        
-        {/* CTA Buttons */}
-        <motion.div
-          className="flex flex-col sm:flex-row gap-4"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-        >
-          {/* Main Play Button */}
-          <motion.button
-            onClick={handlePlay}
-            disabled={isConnecting}
-            className={`
-              px-8 py-4 text-lg font-bold rounded-xl
-              bg-gradient-to-r from-neon-cyan to-neon-purple
-              text-dark-900 shadow-neon-cyan
-              hover:shadow-[0_0_30px_rgba(0,255,255,0.6)]
-              transition-shadow
-              disabled:opacity-50 disabled:cursor-wait
-            `}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            {isConnecting ? (
-              <span className="flex items-center gap-2">
-                <div className="w-5 h-5 border-2 border-dark-900 border-t-transparent rounded-full animate-spin" />
-                Connecting...
+              <Zap className="w-4 h-4 text-neon-cyan" />
+              <span className="text-sm text-gray-300">Powered by Linera Protocol</span>
+              <ChevronRight className="w-4 h-4 text-gray-500" />
+            </motion.div>
+            
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black mb-4 tracking-tight">
+              <span className="bg-gradient-to-r from-neon-cyan via-blue-400 to-neon-purple bg-clip-text text-transparent">
+                Signal
               </span>
-            ) : isConnected ? (
-              '🎮 Enter Game'
-            ) : (
-              '⚡ Quick Play'
-            )}
-          </motion.button>
+              <span className="text-white">Siege</span>
+            </h1>
+            
+            <motion.p 
+              className="text-lg md:text-xl text-gray-400 max-w-lg mx-auto"
+              variants={itemVariants}
+            >
+              Strategic circuit warfare on the blockchain. Build paths, outsmart opponents, claim victory.
+            </motion.p>
+          </motion.div>
           
-          {/* Wallet Button */}
-          {!isAuthenticated ? (
+          {/* Feature cards */}
+          <motion.div 
+            className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10"
+            variants={itemVariants}
+          >
+            {[
+              { icon: Zap, text: 'On-Chain PvP', color: 'text-neon-cyan', border: 'hover:border-neon-cyan/50' },
+              { icon: Grid3X3, text: '7×7 Grid', color: 'text-neon-purple', border: 'hover:border-neon-purple/50' },
+              { icon: Coins, text: 'Stake & Win', color: 'text-neon-yellow', border: 'hover:border-neon-yellow/50' },
+              { icon: Puzzle, text: 'Daily Puzzles', color: 'text-neon-pink', border: 'hover:border-neon-pink/50' },
+            ].map((feature, i) => (
+              <motion.div 
+                key={i}
+                className={`group relative p-4 bg-dark-800/40 backdrop-blur-sm border border-gray-700/50 rounded-xl ${feature.border} hover:bg-dark-800/60 transition-all duration-300 cursor-default`}
+                whileHover={{ y: -4, scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 400 }}
+              >
+                <feature.icon className={`w-6 h-6 ${feature.color} mx-auto mb-2 group-hover:scale-110 transition-transform`} />
+                <span className="text-sm text-gray-300 font-medium">{feature.text}</span>
+              </motion.div>
+            ))}
+          </motion.div>
+          
+          {/* CTA Buttons */}
+          <motion.div className="flex flex-col sm:flex-row gap-4 justify-center mb-8" variants={itemVariants}>
             <motion.button
-              onClick={openLogin}
-              className={`
-                px-8 py-4 text-lg font-bold rounded-xl
-                border-2 border-neon-purple text-neon-purple
-                hover:bg-neon-purple/10
-                transition-colors
-              `}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              onClick={handlePlay}
+              disabled={isConnecting}
+              className="group relative px-8 py-4 text-lg font-bold rounded-2xl bg-gradient-to-r from-neon-cyan via-blue-500 to-neon-purple text-white shadow-lg shadow-neon-cyan/25 hover:shadow-xl hover:shadow-neon-cyan/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-wait overflow-hidden"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
             >
-              🔗 Connect Wallet
+              <motion.div 
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12"
+                initial={{ x: '-100%' }}
+                whileHover={{ x: '100%' }}
+                transition={{ duration: 0.6 }}
+              />
+              
+              <span className="relative flex items-center justify-center gap-2">
+                {isConnecting ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Connecting...
+                  </>
+                ) : isConnected ? (
+                  <>
+                    <Play className="w-5 h-5" />
+                    Enter Game
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-5 h-5" />
+                    Quick Play
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
+              </span>
             </motion.button>
-          ) : !isLinked ? (
-            <motion.button
-              type="button"
-              onClick={async (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('[LandingPage] Link Identity clicked');
-                try {
-                  await linkIdentity();
-                } catch (err) {
-                  console.error('[LandingPage] Link failed:', err);
-                }
-              }}
-              disabled={isLinking || !isConnected}
-              className={`
-                px-8 py-4 text-lg font-bold rounded-xl
-                border-2 border-neon-yellow text-neon-yellow
-                hover:bg-neon-yellow/10
-                transition-colors
-                disabled:opacity-50
-              `}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            
+            {!isAuthenticated ? (
+              <motion.button
+                onClick={openLogin}
+                className="group px-8 py-4 text-lg font-bold rounded-2xl bg-dark-800/60 backdrop-blur-sm border-2 border-neon-purple/50 text-neon-purple hover:border-neon-purple hover:bg-neon-purple/10 transition-all duration-300"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <span className="flex items-center gap-2">
+                  <Wallet className="w-5 h-5" />
+                  Connect Wallet
+                </span>
+              </motion.button>
+            ) : !isLinked ? (
+              <motion.button
+                onClick={linkIdentity}
+                disabled={isLinking || !isConnected}
+                className="group px-8 py-4 text-lg font-bold rounded-2xl bg-dark-800/60 backdrop-blur-sm border-2 border-neon-yellow/50 text-neon-yellow hover:border-neon-yellow hover:bg-neon-yellow/10 transition-all duration-300 disabled:opacity-50"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <span className="flex items-center gap-2">
+                  <Link2 className="w-5 h-5" />
+                  {isLinking ? 'Linking...' : !isConnected ? 'Connect First' : 'Link Identity'}
+                </span>
+              </motion.button>
+            ) : (
+              <motion.button
+                onClick={() => navigate('/profile')}
+                className="group px-8 py-4 text-lg font-bold rounded-2xl bg-dark-800/60 backdrop-blur-sm border-2 border-neon-green/50 text-neon-green hover:border-neon-green hover:bg-neon-green/10 transition-all duration-300"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <span className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5" />
+                  Wallet Linked
+                </span>
+              </motion.button>
+            )}
+          </motion.div>
+          
+          {linkError && (
+            <motion.div
+              className="mb-6 px-4 py-3 bg-neon-red/10 border border-neon-red/30 rounded-xl inline-flex items-center gap-2"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
             >
-              {isLinking ? 'Linking...' : !isConnected ? '⏳ Connect First' : '🔐 Link Identity'}
-            </motion.button>
-          ) : (
-            <motion.button
-              onClick={() => navigate('/profile')}
-              className={`
-                px-8 py-4 text-lg font-bold rounded-xl
-                border-2 border-neon-green text-neon-green
-                hover:bg-neon-green/10
-                transition-colors
-              `}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              <Shield className="w-4 h-4 text-neon-red" />
+              <span className="text-neon-red text-sm">{linkError}</span>
+            </motion.div>
+          )}
+          
+          {/* Connection Status Card */}
+          {(isConnected || error) && (
+            <motion.div
+              className="max-w-md mx-auto p-5 bg-dark-800/60 backdrop-blur-sm border border-gray-700/50 rounded-2xl"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
             >
-              ✓ Wallet Linked
-            </motion.button>
+              {error ? (
+                <div className="flex items-center justify-center gap-3">
+                  <Shield className="w-5 h-5 text-neon-red" />
+                  <span className="text-neon-red">{error}</span>
+                  <button onClick={() => connect()} className="ml-2 text-neon-cyan hover:underline text-sm font-medium">Retry</button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <motion.div className="w-2.5 h-2.5 rounded-full bg-neon-green" variants={pulseVariants} animate="pulse" />
+                      <span className="text-neon-green font-medium text-sm">Conway Testnet</span>
+                    </div>
+                    <button onClick={handleDisconnect} className="flex items-center gap-1 text-gray-400 hover:text-neon-red text-sm transition-colors">
+                      <Unlink className="w-3.5 h-3.5" />
+                      Disconnect
+                    </button>
+                  </div>
+                  
+                  <div className="space-y-2.5 text-sm">
+                    <div className="flex justify-between items-center p-2 bg-dark-700/50 rounded-lg">
+                      <span className="text-gray-400 flex items-center gap-2"><Globe className="w-4 h-4" />Chain</span>
+                      <span className="font-mono text-neon-cyan">{shortAddress(chainId)}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-2 bg-dark-700/50 rounded-lg">
+                      <span className="text-gray-400 flex items-center gap-2"><Cpu className="w-4 h-4" />Signer</span>
+                      <span className="font-mono text-gray-300">{shortAddress(autoSignerAddress)}</span>
+                    </div>
+                    {isAuthenticated && dynamicEvmAddress && (
+                      <div className="flex justify-between items-center p-2 bg-dark-700/50 rounded-lg">
+                        <span className="text-gray-400 flex items-center gap-2"><Wallet className="w-4 h-4" />EVM</span>
+                        <span className="font-mono text-neon-purple">{shortAddress(dynamicEvmAddress)}</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="mt-4 pt-3 border-t border-gray-700/50 flex items-center justify-center gap-2 text-xs text-gray-500">
+                    <Zap className="w-3.5 h-3.5" />
+                    Auto-signer ready • Zero gas per move
+                  </div>
+                </>
+              )}
+            </motion.div>
           )}
         </motion.div>
         
-        {/* Link Error Display */}
-        {linkError && (
-          <motion.div
-            className="mt-4 px-4 py-2 bg-neon-red/10 border border-neon-red/50 rounded-lg"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <span className="text-neon-red text-sm">⚠️ {linkError}</span>
-          </motion.div>
-        )}
-        
-        {/* Connection Status Card - Show when connected or error */}
-        {(isConnected || error) && (
-          <motion.div
-            className="mt-8 p-4 bg-dark-800/80 border border-neon-cyan/30 rounded-xl max-w-md w-full"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            {error ? (
-              <div className="text-center">
-                <span className="text-neon-red">⚠️ {error}</span>
-                <button 
-                  onClick={() => connect()}
-                  className="ml-3 text-neon-cyan underline text-sm"
-                >
-                  Retry
-                </button>
-              </div>
-            ) : (
-              <>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-neon-green animate-pulse" />
-                    <span className="text-neon-green font-medium">Connected to Conway Testnet</span>
-                  </div>
-                  <button
-                    onClick={handleDisconnect}
-                    className="text-gray-400 hover:text-neon-red text-sm transition-colors"
-                  >
-                    Disconnect
-                  </button>
-                </div>
-                
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-400">Chain ID:</span>
-                    <span className="font-mono text-neon-cyan">{shortAddress(chainId)}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-400">Game Signer:</span>
-                    <span className="font-mono text-gray-300">{shortAddress(autoSignerAddress)}</span>
-                  </div>
-                  {isAuthenticated && dynamicEvmAddress && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-400">EVM Wallet:</span>
-                      <span className="font-mono text-neon-purple">{shortAddress(dynamicEvmAddress)}</span>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="mt-3 pt-3 border-t border-gray-700 text-center text-xs text-gray-500">
-                  Auto-signer ready • No gas fees per move
-                </div>
-              </>
-            )}
-          </motion.div>
-        )}
-        
-        {/* How to play teaser */}
+        {/* How to play section */}
         <motion.div
           className="mt-16 max-w-2xl text-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
         >
-          <h3 className="text-gray-400 mb-4">How It Works</h3>
+          <h3 className="text-gray-400 mb-6 text-sm uppercase tracking-wider font-medium">How It Works</h3>
           <div className="grid grid-cols-3 gap-6">
             {[
-              { step: '1', title: 'Place Tiles', desc: 'Build signal paths' },
-              { step: '2', title: 'Route Signals', desc: 'Connect your towers' },
-              { step: '3', title: 'Dominate', desc: 'Block opponents & win' },
+              { step: '01', title: 'Place Tiles', desc: 'Build signal paths', icon: Grid3X3 },
+              { step: '02', title: 'Route Signals', desc: 'Connect your towers', icon: Zap },
+              { step: '03', title: 'Dominate', desc: 'Block & win', icon: Shield },
             ].map((item, i) => (
-              <div key={i} className="text-center">
-                <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-neon-cyan/20 border border-neon-cyan/50 flex items-center justify-center text-neon-cyan font-bold">
-                  {item.step}
+              <motion.div key={i} className="group text-center" whileHover={{ y: -4 }}>
+                <div className="relative w-14 h-14 mx-auto mb-3">
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-neon-cyan/20 to-neon-purple/20 group-hover:from-neon-cyan/30 group-hover:to-neon-purple/30 transition-colors" />
+                  <div className="absolute inset-0 rounded-xl border border-neon-cyan/30 group-hover:border-neon-cyan/50 transition-colors" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <item.icon className="w-6 h-6 text-neon-cyan" />
+                  </div>
+                  <span className="absolute -top-2 -right-2 text-xs font-bold text-neon-purple bg-dark-800 px-1.5 py-0.5 rounded-md border border-neon-purple/30">{item.step}</span>
                 </div>
-                <div className="text-white font-medium">{item.title}</div>
+                <div className="text-white font-semibold mb-1">{item.title}</div>
                 <div className="text-gray-500 text-sm">{item.desc}</div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </motion.div>
       </main>
       
       {/* Footer */}
-      <footer className="py-4 text-center text-gray-600 text-sm z-10">
-        Built on <span className="text-neon-cyan">Linera Protocol</span>
+      <footer className="py-6 text-center z-10">
+        <div className="flex items-center justify-center gap-2 text-gray-500 text-sm">
+          <span>Built on</span>
+          <span className="text-neon-cyan font-medium flex items-center gap-1">
+            <Zap className="w-4 h-4" />
+            Linera Protocol
+          </span>
+        </div>
       </footer>
     </div>
   );

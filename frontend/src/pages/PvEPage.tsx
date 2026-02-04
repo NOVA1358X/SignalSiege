@@ -1,13 +1,28 @@
 // PvE Page - Daily Puzzle and Training Mode
 
 import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useLineraStore } from '../stores/lineraStore';
 import { useGameStore } from '../stores/gameStore';
 import { GameBoard } from '../components/GameBoard';
 import { TileInventory } from '../components/TileInventory';
-import { MiniHeader } from '../components/GameHeader';
+import {
+  ArrowLeft,
+  Puzzle,
+  Bot,
+  Trophy,
+  Loader2,
+  Target,
+  Shield,
+  Sparkles,
+  Play,
+  ChevronRight,
+  Clock,
+  Star,
+  Zap,
+  Home
+} from 'lucide-react';
 
 type Mode = 'menu' | 'puzzle' | 'training';
 
@@ -33,7 +48,6 @@ const PvEPage: React.FC = () => {
   const [mode, setMode] = useState<Mode>('menu');
   const [selectedMap, setSelectedMap] = useState(0);
   
-  // Fetch current state on mount
   useEffect(() => {
     if (isConnected) {
       fetchPuzzle();
@@ -41,10 +55,8 @@ const PvEPage: React.FC = () => {
     }
   }, [isConnected, fetchPuzzle, fetchTraining]);
   
-  // Helper functions to normalize puzzle/training status
   const getPuzzleStatus = (p: typeof puzzle) => {
     if (!p) return undefined;
-    // Map contract status to frontend status
     if (p.status === 'InProgress') return 'Playing';
     if (p.status === 'Finished') return 'Finished';
     if (p.status) return p.status;
@@ -54,14 +66,12 @@ const PvEPage: React.FC = () => {
 
   const getTrainingStatus = (t: typeof training) => {
     if (!t) return undefined;
-    // Map contract status to frontend status
     const status = t.status;
     if (status === 'InProgress') return 'Playing';
     if (status === 'Finished') return 'Finished';
     return status;
   };
 
-  // Auto-switch to active mode
   useEffect(() => {
     if (puzzle && getPuzzleStatus(puzzle) === 'Playing') {
       setMode('puzzle');
@@ -70,18 +80,15 @@ const PvEPage: React.FC = () => {
     }
   }, [puzzle, training]);
   
-  // Start puzzle handler
   const handleStartPuzzle = async () => {
     try {
       await startPuzzle();
       setMode('puzzle');
     } catch (error) {
       console.error('Failed to start puzzle:', error);
-      // May fail if already attempted today
     }
   };
   
-  // Start training handler  
   const handleStartTraining = async () => {
     try {
       await startTrainingMatch(selectedMap);
@@ -91,7 +98,6 @@ const PvEPage: React.FC = () => {
     }
   };
   
-  // Board click handler
   const handleBoardClick = async (index: number) => {
     if (mode === 'puzzle') {
       await makePuzzleMove(index);
@@ -100,79 +106,121 @@ const PvEPage: React.FC = () => {
     }
   };
   
-  // Connection check
   if (!isConnected) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen flex items-center justify-center bg-dark-900">
+        <motion.div 
+          className="text-center p-8 bg-dark-800/60 backdrop-blur-sm border border-gray-700/50 rounded-2xl"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+        >
+          <Shield className="w-12 h-12 text-neon-cyan mx-auto mb-4" />
           <p className="text-gray-400 mb-4">Connect to play</p>
-          <button 
+          <motion.button 
             onClick={() => navigate('/')}
-            className="px-6 py-2 bg-neon-cyan text-dark-900 rounded-lg font-bold"
+            className="px-6 py-3 bg-gradient-to-r from-neon-cyan to-neon-purple text-white rounded-xl font-bold"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             Go Home
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
       </div>
     );
   }
   
-  // Menu mode - choose puzzle or training
+  // Menu mode
   if (mode === 'menu') {
     return (
-      <div className="min-h-screen p-4 md:p-8">
+      <div className="min-h-screen p-4 md:p-8 bg-dark-900">
         <div className="max-w-xl mx-auto">
-          {/* Back button */}
-          <button
+          <motion.button
             onClick={() => navigate('/lobby')}
-            className="text-gray-400 hover:text-white mb-6"
+            className="flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            whileHover={{ x: -4 }}
           >
-            ← Back to Lobby
-          </button>
+            <ArrowLeft className="w-5 h-5" />
+            Back to Lobby
+          </motion.button>
           
-          <h1 className="text-3xl font-bold text-white mb-8 text-center">
+          <motion.h1 
+            className="text-3xl font-bold text-white mb-8 text-center flex items-center justify-center gap-3"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <Zap className="w-8 h-8 text-neon-cyan" />
             Practice Mode
-          </h1>
+          </motion.h1>
           
           {/* Daily Puzzle Card */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-dark-800 rounded-xl p-6 border border-neon-purple/30 mb-4"
+            className="group bg-dark-800/60 backdrop-blur-sm rounded-2xl p-6 border border-neon-purple/30 hover:border-neon-purple/50 mb-4 transition-all"
           >
             <div className="flex items-start justify-between mb-4">
-              <div>
-                <h2 className="text-xl font-bold text-white">🧩 Daily Puzzle</h2>
-                <p className="text-gray-400 text-sm">
-                  One puzzle per day. Solve it to earn bonus coins!
-                </p>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-neon-purple/20 to-neon-pink/20 border border-neon-purple/30 flex items-center justify-center">
+                  <Puzzle className="w-6 h-6 text-neon-purple" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-white">Daily Puzzle</h2>
+                  <p className="text-gray-400 text-sm">One puzzle per day for bonus coins</p>
+                </div>
               </div>
-              <span className="text-3xl">🏆</span>
+              <div className="flex items-center gap-1 text-neon-yellow">
+                <Trophy className="w-5 h-5" />
+                <span className="font-bold">+100</span>
+              </div>
             </div>
             
             {getPuzzleStatus(puzzle) === 'Finished' ? (
-              <div className="text-center py-4">
+              <div className="text-center py-4 bg-dark-700/30 rounded-xl">
                 {(puzzle?.isWon ?? puzzle?.completed) ? (
-                  <p className="text-neon-green">✓ Solved! Come back tomorrow.</p>
+                  <div className="flex items-center justify-center gap-2 text-neon-green">
+                    <Star className="w-5 h-5" />
+                    <span className="font-medium">Solved! Come back tomorrow</span>
+                  </div>
                 ) : (
-                  <p className="text-neon-red">❌ Failed. Try again tomorrow.</p>
+                  <div className="flex items-center justify-center gap-2 text-neon-red">
+                    <Clock className="w-5 h-5" />
+                    <span className="font-medium">Try again tomorrow</span>
+                  </div>
                 )}
               </div>
             ) : getPuzzleStatus(puzzle) === 'Playing' ? (
-              <button
+              <motion.button
                 onClick={() => setMode('puzzle')}
-                className="w-full py-3 bg-neon-purple text-white rounded-lg font-bold hover:bg-neon-purple/80 transition-colors"
+                className="w-full py-3 bg-neon-purple text-white rounded-xl font-bold hover:bg-neon-purple/80 transition-colors flex items-center justify-center gap-2"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
+                <Play className="w-5 h-5" />
                 Continue Puzzle
-              </button>
+                <ChevronRight className="w-5 h-5" />
+              </motion.button>
             ) : (
-              <button
+              <motion.button
                 onClick={handleStartPuzzle}
                 disabled={isLoadingPuzzle}
-                className="w-full py-3 bg-gradient-to-r from-neon-purple to-neon-pink text-white rounded-lg font-bold hover:shadow-neon-purple transition-shadow disabled:opacity-50"
+                className="w-full py-3 bg-gradient-to-r from-neon-purple to-neon-pink text-white rounded-xl font-bold hover:shadow-lg hover:shadow-neon-purple/30 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                {isLoadingPuzzle ? 'Starting...' : 'Start Today\'s Puzzle'}
-              </button>
+                {isLoadingPuzzle ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Starting...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-5 h-5" />
+                    Start Today's Puzzle
+                  </>
+                )}
+              </motion.button>
             )}
           </motion.div>
           
@@ -181,55 +229,74 @@ const PvEPage: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-dark-800 rounded-xl p-6 border border-neon-cyan/30"
+            className="group bg-dark-800/60 backdrop-blur-sm rounded-2xl p-6 border border-neon-green/30 hover:border-neon-green/50 transition-all"
           >
             <div className="flex items-start justify-between mb-4">
-              <div>
-                <h2 className="text-xl font-bold text-white">🤖 Training Mode</h2>
-                <p className="text-gray-400 text-sm">
-                  Practice against AI. No stakes, unlimited plays.
-                </p>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-neon-green/20 to-neon-cyan/20 border border-neon-green/30 flex items-center justify-center">
+                  <Bot className="w-6 h-6 text-neon-green" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-white">Training Mode</h2>
+                  <p className="text-gray-400 text-sm">Practice vs AI, unlimited plays</p>
+                </div>
               </div>
-              <span className="text-3xl">🎮</span>
             </div>
             
             {/* Map selector */}
             <div className="mb-4">
-              <label className="text-sm text-gray-400 mb-2 block">Select Map</label>
-              <div className="grid grid-cols-3 gap-2">
+              <label className="text-sm text-gray-400 mb-3 block">Select Map</label>
+              <div className="grid grid-cols-3 gap-3">
                 {[0, 1, 2].map((mapId) => (
-                  <button
+                  <motion.button
                     key={mapId}
                     onClick={() => setSelectedMap(mapId)}
-                    className={`
-                      py-2 rounded-lg transition-colors text-sm
-                      ${selectedMap === mapId 
-                        ? 'bg-neon-cyan text-dark-900 font-bold' 
-                        : 'bg-dark-700 text-gray-400 hover:bg-dark-600'
-                      }
-                    `}
+                    className={`p-3 rounded-xl transition-all ${
+                      selectedMap === mapId 
+                        ? 'bg-neon-green/20 border-2 border-neon-green text-white' 
+                        : 'bg-dark-700/50 border-2 border-gray-700/50 text-gray-400 hover:border-gray-600'
+                    }`}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    Map {mapId + 1}
-                  </button>
+                    <Target className={`w-6 h-6 mx-auto mb-1 ${selectedMap === mapId ? 'text-neon-green' : 'text-gray-500'}`} />
+                    <span className="text-sm font-medium">Map {mapId + 1}</span>
+                  </motion.button>
                 ))}
               </div>
             </div>
             
             {getTrainingStatus(training) === 'Playing' ? (
-              <button
+              <motion.button
                 onClick={() => setMode('training')}
-                className="w-full py-3 bg-neon-cyan text-dark-900 rounded-lg font-bold hover:bg-neon-cyan/80 transition-colors"
+                className="w-full py-3 bg-neon-green text-dark-900 rounded-xl font-bold hover:bg-neon-green/80 transition-colors flex items-center justify-center gap-2"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
+                <Play className="w-5 h-5" />
                 Continue Training
-              </button>
+                <ChevronRight className="w-5 h-5" />
+              </motion.button>
             ) : (
-              <button
+              <motion.button
                 onClick={handleStartTraining}
                 disabled={isLoadingTraining}
-                className="w-full py-3 bg-gradient-to-r from-neon-cyan to-neon-green text-dark-900 rounded-lg font-bold hover:shadow-neon-cyan transition-shadow disabled:opacity-50"
+                className="w-full py-3 bg-gradient-to-r from-neon-green to-neon-cyan text-dark-900 rounded-xl font-bold hover:shadow-lg hover:shadow-neon-green/30 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                {isLoadingTraining ? 'Starting...' : 'Start Training Match'}
-              </button>
+                {isLoadingTraining ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Starting...
+                  </>
+                ) : (
+                  <>
+                    <Bot className="w-5 h-5" />
+                    Start Training Match
+                  </>
+                )}
+              </motion.button>
             )}
           </motion.div>
         </div>
@@ -237,12 +304,8 @@ const PvEPage: React.FC = () => {
     );
   }
   
-  // Active game mode (puzzle or training)
+  // Active game mode
   const activeGame = mode === 'puzzle' ? puzzle : training;
-  // isLoading can be used for loading states in future
-  void (mode === 'puzzle' ? isLoadingPuzzle : isLoadingTraining);
-  
-  // Normalize properties across puzzle and training
   const activeStatus = mode === 'puzzle' ? getPuzzleStatus(puzzle) : getTrainingStatus(training);
   const activeTurnNumber = activeGame 
     ? Number(activeGame.turnNumber ?? ('currentTurn' in activeGame ? activeGame.currentTurn : 0))
@@ -257,34 +320,68 @@ const PvEPage: React.FC = () => {
   
   if (!activeGame) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-neon-cyan border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-dark-900">
+        <Loader2 className="w-10 h-10 text-neon-cyan animate-spin" />
       </div>
     );
   }
   
+  const isWin = mode === 'puzzle'
+    ? (puzzle?.isWon ?? puzzle?.completed)
+    : (training?.winner === 'One' || training?.winner === 'player1');
+  
   return (
-    <div className="min-h-screen p-4">
+    <div className="min-h-screen p-4 bg-dark-900">
       <div className="max-w-4xl mx-auto">
-        {/* Back to menu */}
-        <button
+        <motion.button
           onClick={() => setMode('menu')}
-          className="text-gray-400 hover:text-white mb-4"
+          className="flex items-center gap-2 text-gray-400 hover:text-white mb-4 transition-colors"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          whileHover={{ x: -4 }}
         >
-          ← Back to Menu
-        </button>
+          <ArrowLeft className="w-5 h-5" />
+          Back to Menu
+        </motion.button>
         
         {/* Header */}
-        <MiniHeader
-          title={mode === 'puzzle' ? '🧩 Daily Puzzle' : '🤖 Training Mode'}
-          turnNumber={activeTurnNumber}
-          status={activeStatus ?? 'WaitingForPlayers'}
-        />
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-dark-800/60 backdrop-blur-sm rounded-2xl p-4 border border-gray-700/50 mb-4 flex items-center justify-between"
+        >
+          <div className="flex items-center gap-3">
+            {mode === 'puzzle' ? (
+              <Puzzle className="w-6 h-6 text-neon-purple" />
+            ) : (
+              <Bot className="w-6 h-6 text-neon-green" />
+            )}
+            <h2 className="text-lg font-bold text-white">
+              {mode === 'puzzle' ? 'Daily Puzzle' : 'Training Mode'}
+            </h2>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <div className="text-center">
+              <span className="text-gray-400 text-xs">Turn</span>
+              <p className="text-xl font-bold text-white">{activeTurnNumber}</p>
+            </div>
+            <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+              activeStatus === 'Playing' ? 'bg-neon-green/20 text-neon-green' : 'bg-gray-700/50 text-gray-400'
+            }`}>
+              {activeStatus === 'Playing' ? 'Playing' : 'Finished'}
+            </div>
+          </div>
+        </motion.div>
         
         {/* Game area */}
-        <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Board */}
-          <div className="lg:col-span-2">
+          <motion.div 
+            className="lg:col-span-2"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+          >
             <GameBoard
               board={activeGame.board}
               isMyTurn={activeStatus === 'Playing'}
@@ -293,57 +390,86 @@ const PvEPage: React.FC = () => {
               onCellClick={handleBoardClick}
               disabled={activeStatus !== 'Playing' || isProcessingMove}
             />
-          </div>
+          </motion.div>
           
           {/* Sidebar */}
-          <div className="space-y-4">
-            {/* Inventory */}
+          <motion.div 
+            className="space-y-4"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+          >
             <TileInventory
               inventory={activeInventory}
               disabled={activeStatus !== 'Playing'}
             />
             
-            {/* Status for finished game */}
-            {activeStatus === 'Finished' && (
-              <div className={`
-                p-4 rounded-xl text-center
-                ${mode === 'puzzle' 
-                  ? (puzzle?.isWon ?? puzzle?.completed)
-                    ? 'bg-neon-green/20 border border-neon-green/50' 
-                    : 'bg-neon-red/20 border border-neon-red/50'
-                  : (training?.winner === 'One' || training?.winner === 'player1')
-                    ? 'bg-neon-green/20 border border-neon-green/50'
-                    : 'bg-neon-red/20 border border-neon-red/50'
-                }
-              `}>
-                <h3 className="text-xl font-bold text-white mb-2">
-                  {mode === 'puzzle'
-                    ? ((puzzle?.isWon ?? puzzle?.completed) ? '🎉 Puzzle Solved!' : '❌ Puzzle Failed')
-                    : ((training?.winner === 'One' || training?.winner === 'player1') ? '🎉 You Win!' : '❌ AI Wins')
-                  }
-                </h3>
-                <button
-                  onClick={() => setMode('menu')}
-                  className="px-6 py-2 bg-dark-700 text-white rounded-lg hover:bg-dark-600 transition-colors"
+            {/* Finished state */}
+            <AnimatePresence>
+              {activeStatus === 'Finished' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className={`p-6 rounded-2xl text-center ${
+                    isWin
+                      ? 'bg-gradient-to-br from-neon-green/20 to-neon-cyan/10 border border-neon-green/30' 
+                      : 'bg-gradient-to-br from-neon-red/20 to-neon-pink/10 border border-neon-red/30'
+                  }`}
                 >
-                  Back to Menu
-                </button>
-              </div>
-            )}
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
+                  >
+                    {isWin ? (
+                      <Trophy className="w-12 h-12 text-neon-green mx-auto mb-3" />
+                    ) : (
+                      <Shield className="w-12 h-12 text-neon-red mx-auto mb-3" />
+                    )}
+                  </motion.div>
+                  
+                  <h3 className="text-xl font-bold text-white mb-4">
+                    {mode === 'puzzle'
+                      ? (isWin ? 'Puzzle Solved!' : 'Puzzle Failed')
+                      : (isWin ? 'You Win!' : 'AI Wins')
+                    }
+                  </h3>
+                  
+                  <motion.button
+                    onClick={() => setMode('menu')}
+                    className="px-6 py-3 bg-dark-700/50 text-white rounded-xl hover:bg-dark-600 transition-colors flex items-center gap-2 mx-auto"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Home className="w-5 h-5" />
+                    Back to Menu
+                  </motion.button>
+                </motion.div>
+              )}
+            </AnimatePresence>
             
-            {/* Objective reminder */}
+            {/* Objective */}
             {activeStatus === 'Playing' && (
-              <div className="bg-dark-800/50 rounded-lg p-3 border border-dark-600">
-                <h4 className="text-sm font-medium text-gray-400 mb-1">Objective</h4>
+              <motion.div 
+                className="bg-dark-800/40 rounded-xl p-4 border border-gray-700/30"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+              >
+                <h4 className="text-sm font-medium text-gray-400 mb-2 flex items-center gap-2">
+                  <Target className="w-4 h-4" />
+                  Objective
+                </h4>
                 <p className="text-sm text-gray-300">
                   {mode === 'puzzle'
                     ? 'Connect the signal path from source to target within the turn limit.'
                     : 'Defeat the AI by connecting more signals or blocking theirs.'
                   }
                 </p>
-              </div>
+              </motion.div>
             )}
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>
