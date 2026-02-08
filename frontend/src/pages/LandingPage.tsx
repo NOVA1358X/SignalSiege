@@ -25,11 +25,14 @@ import {
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const { isConnected, isConnecting, connect, disconnect, chainId, autoSignerAddress, error } = useLineraStore();
-  const { isAuthenticated, isLinked, openLogin, isLinking, linkIdentity, fullLogout, dynamicEvmAddress, linkError } = useDynamicWallet();
+  const { isAuthenticated, isLinked, openLogin, isLinking, linkIdentity, fullLogout, dynamicEvmAddress, linkError, isAutoConnecting } = useDynamicWallet();
+  
+  // Combined connecting state - either Linera connecting or auto-connecting after Dynamic auth
+  const isFullyConnecting = isConnecting || isAutoConnecting;
   
   const handlePlay = async () => {
     if (!isConnected) {
-      await connect();
+      await connect(dynamicEvmAddress || undefined);
     }
     navigate('/lobby');
   };
@@ -180,7 +183,7 @@ const LandingPage: React.FC = () => {
           <motion.div className="flex flex-col sm:flex-row gap-4 justify-center mb-8" variants={itemVariants}>
             <motion.button
               onClick={handlePlay}
-              disabled={isConnecting}
+              disabled={isFullyConnecting}
               className="group relative px-8 py-4 text-lg font-bold rounded-2xl bg-gradient-to-r from-neon-cyan via-blue-500 to-neon-purple text-white shadow-lg shadow-neon-cyan/25 hover:shadow-xl hover:shadow-neon-cyan/40 transition-all duration-300 disabled:opacity-50 disabled:cursor-wait overflow-hidden"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
@@ -193,7 +196,7 @@ const LandingPage: React.FC = () => {
               />
               
               <span className="relative flex items-center justify-center gap-2">
-                {isConnecting ? (
+                {isFullyConnecting ? (
                   <>
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     Connecting...
@@ -214,7 +217,9 @@ const LandingPage: React.FC = () => {
               </span>
             </motion.button>
             
+            {/* Wallet connection button - shows different states */}
             {!isAuthenticated ? (
+              // Step 1: Not logged into Dynamic - show Connect Wallet
               <motion.button
                 onClick={openLogin}
                 className="group px-8 py-4 text-lg font-bold rounded-2xl bg-dark-800/60 backdrop-blur-sm border-2 border-neon-purple/50 text-neon-purple hover:border-neon-purple hover:bg-neon-purple/10 transition-all duration-300"
@@ -226,20 +231,57 @@ const LandingPage: React.FC = () => {
                   Connect Wallet
                 </span>
               </motion.button>
-            ) : !isLinked ? (
+            ) : isAutoConnecting ? (
+              // Step 2: Authenticated, auto-connecting to Linera
               <motion.button
-                onClick={linkIdentity}
-                disabled={isLinking || !isConnected}
+                disabled
+                className="group px-8 py-4 text-lg font-bold rounded-2xl bg-dark-800/60 backdrop-blur-sm border-2 border-neon-cyan/50 text-neon-cyan transition-all duration-300 opacity-70"
+              >
+                <span className="flex items-center gap-2">
+                  <div className="w-5 h-5 border-2 border-neon-cyan border-t-transparent rounded-full animate-spin" />
+                  Connecting to Conway...
+                </span>
+              </motion.button>
+            ) : !isConnected ? (
+              // Step 2b: Authenticated but Linera connect failed/not started - show retry
+              <motion.button
+                onClick={() => connect(dynamicEvmAddress || undefined)}
+                disabled={isConnecting}
                 className="group px-8 py-4 text-lg font-bold rounded-2xl bg-dark-800/60 backdrop-blur-sm border-2 border-neon-yellow/50 text-neon-yellow hover:border-neon-yellow hover:bg-neon-yellow/10 transition-all duration-300 disabled:opacity-50"
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
               >
                 <span className="flex items-center gap-2">
+                  <Globe className="w-5 h-5" />
+                  {isConnecting ? 'Connecting...' : 'Connect to Conway'}
+                </span>
+              </motion.button>
+            ) : isLinking ? (
+              // Step 3: Connected to Linera, linking identity
+              <motion.button
+                disabled
+                className="group px-8 py-4 text-lg font-bold rounded-2xl bg-dark-800/60 backdrop-blur-sm border-2 border-neon-yellow/50 text-neon-yellow transition-all duration-300 opacity-70"
+              >
+                <span className="flex items-center gap-2">
+                  <div className="w-5 h-5 border-2 border-neon-yellow border-t-transparent rounded-full animate-spin" />
+                  Signing & Linking...
+                </span>
+              </motion.button>
+            ) : !isLinked ? (
+              // Step 3b: Connected but not linked - show Link button
+              <motion.button
+                onClick={linkIdentity}
+                className="group px-8 py-4 text-lg font-bold rounded-2xl bg-dark-800/60 backdrop-blur-sm border-2 border-neon-yellow/50 text-neon-yellow hover:border-neon-yellow hover:bg-neon-yellow/10 transition-all duration-300"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <span className="flex items-center gap-2">
                   <Link2 className="w-5 h-5" />
-                  {isLinking ? 'Linking...' : !isConnected ? 'Connect First' : 'Link Identity'}
+                  Link Identity
                 </span>
               </motion.button>
             ) : (
+              // Step 4: Fully connected and linked
               <motion.button
                 onClick={() => navigate('/profile')}
                 className="group px-8 py-4 text-lg font-bold rounded-2xl bg-dark-800/60 backdrop-blur-sm border-2 border-neon-green/50 text-neon-green hover:border-neon-green hover:bg-neon-green/10 transition-all duration-300"

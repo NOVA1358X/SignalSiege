@@ -1,7 +1,7 @@
 // Dynamic.xyz wallet integration hooks
 // Handles EVM wallet login and identity linking
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { useDynamicContext, useUserWallets, useIsLoggedIn } from '@dynamic-labs/sdk-react-core';
 import { useLineraStore } from '../stores/lineraStore';
 import { lineraAdapter } from '../lib/linera/lineraAdapter';
@@ -16,11 +16,16 @@ export function useDynamicWallet() {
     evmAddress, 
     chainId, 
     autoSignerAddress,
-    connect: _connect, 
+    isConnected,
+    isConnecting,
+    connect: lineraConnect, 
     registerPlayer: _registerPlayer,
     logout: lineraLogout,
     refreshProfile,
   } = useLineraStore();
+  
+  const [isAutoConnecting, setIsAutoConnecting] = useState(false);
+  const autoConnectAttemptedRef = useRef(false);
   
   const [isLinking, setIsLinking] = useState(false);
   const [linkError, setLinkError] = useState<string | null>(null);
@@ -141,7 +146,36 @@ export function useDynamicWallet() {
       // Ignore Dynamic logout errors
     }
     lineraLogout();
+    autoConnectAttemptedRef.current = false;
   }, [handleLogOut, lineraLogout]);
+  
+  // Auto-connect to Linera when Dynamic wallet authenticates
+  useEffect(() => {
+    const autoConnectToLinera = async () => {
+      // Check conditions: authenticated with Dynamic, not yet connected to Linera, not already attempting
+      if (isAuthenticated && dynamicEvmAddress && !isConnected && !isConnecting && !isAutoConnecting && !autoConnectAttemptedRef.current) {
+        autoConnectAttemptedRef.current = true;
+        setIsAutoConnecting(true);
+        
+        console.log('[useDynamic] Auto-connecting to Linera after Dynamic auth...');
+        
+        try {
+          // Connect to Linera with the EVM address
+          await lineraConnect(dynamicEvmAddress);
+          console.log('[useDynamic] Auto-connect to Linera successful');
+        } catch (error) {
+          console.error('[useDynamic] Auto-connect to Linera failed:', error);
+          autoConnectAttemptedRef.current = false; // Allow retry on error
+        } finally {
+          setIsAutoConnecting(false);
+        }
+      }
+    };
+    
+    // Small delay to let Dynamic settle
+    const timer = setTimeout(autoConnectToLinera, 500);
+    return () => clearTimeout(timer);
+  }, [isAuthenticated, dynamicEvmAddress, isConnected, isConnecting, isAutoConnecting, lineraConnect]);
   
   // Auto-attempt link when wallet connects (only once per session)
   useEffect(() => {
@@ -158,6 +192,7 @@ export function useDynamicWallet() {
   useEffect(() => {
     if (!isAuthenticated) {
       setHasAttempted(false);
+      autoConnectAttemptedRef.current = false;
     }
   }, [isAuthenticated]);
   
@@ -167,6 +202,9 @@ export function useDynamicWallet() {
     primaryWallet,
     isAuthenticated,
     dynamicEvmAddress,
+    
+    // Connection state
+    isAutoConnecting,
     
     // Linking state
     isLinked,
